@@ -69,17 +69,66 @@ class Deck:
         return random_river
 
 
-# Beispiel Nutzung
-deck = Deck()
-deck.select_two_player_cards()
-deck.select_two_dealers_cards()
-nextCard = input('Do you want to countine, anwser with y/n:')
-if nextCard == 'y':
-    deck.three_flop_cards()
-    turnCard = input('Do you want to countine, anwser with y/n:')
-    if turnCard == 'y':
-        deck.one_turn_card()
-        riverCard = input('Do you want to countine, anwser with y/n:')
-        if riverCard == 'y':
-            deck.one_river_card()
+
+class Player:
+    def __init__(self, name, balance):
+        self.name = name
+        self.balance = balance
+        self.cards = []
+
+    def place_bet(self, betrag):
+        if betrag > self.balance:
+           print(f'Nicht genug geld nur {self.balance}')
+        self.balance -= betrag
+        return betrag
+
+    def get_win(self, betrag):
+        self.balance += betrag
+
+    def show_balance(self):
+        print(f"{self.name}'s aktueller Kontostand: ${self.balance}")
+
+    def add_cards(self, cards):
+        self.cards.extend(cards)
+
+
+
+class Game:
+    def __init__(self):
+        self.deck = Deck()
+        self.player = Player("Spieler", 1000)
+        self.dealer = Player("Dealer", 1000)
+        self.pot = 0
+
+    def bet_round(self):
+        bet  = int(input('wie viel möchtest du setzten?'))
+        player_bet = self.player.place_bet(bet)
+        if player_bet:
+            self.pot += player_bet
+            print(f'es liegt jetzt {self.pot} im pot')
+
+    def play_game(self):
+        self.player.add_cards(self.deck.select_two_player_cards())
+        self.dealer.add_cards(self.deck.select_two_dealers_cards())
+        self.bet_round()
+        if input("Möchtest du weitermachen? (y/n): ").lower() == 'y':
+            self.deck.three_flop_cards()
+            self.bet_round()
+        if input("Möchtest du weitermachen? (y/n): ").lower() == 'y':
+            self.deck.one_turn_card()
+            self.bet_round()
+        if input("Möchtest du weitermachen? (y/n): ").lower() == 'y':
+            self.deck.one_river_card()
+            self.bet_round()
+        self.determine_winner()
+
+    def determine_winner(self):
+        print(f"{self.player.name} gewinnt den Pot von ${self.pot}!")
+        self.player.get_win(self.pot)
+        self.pot = 0
+        self.player.show_balance()
+
+
+game = Game()
+game.play_game()
 
